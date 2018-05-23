@@ -95,3 +95,19 @@ func (u *Universe) Step() {
 		u.Bodies[i].ZPos += u.Bodies[i].ZVel * Time
 	}
 }
+
+func (u *Universe) FarthestPointFromOrigin() float64 {
+	var farthest float64
+	for i := range u.Bodies {
+		if u.Bodies[i].XPos > farthest {
+			farthest = u.Bodies[i].XPos
+		}
+		if u.Bodies[i].YPos > farthest {
+			farthest = u.Bodies[i].YPos
+		}
+		if u.Bodies[i].ZPos > farthest {
+			farthest = u.Bodies[i].ZPos
+		}
+	}
+	return farthest
+}

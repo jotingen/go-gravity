@@ -49,7 +49,7 @@ func main() {
 		XPos: 0,
 		YPos: 0,
 		ZPos: 0,
-		XVel: 0,
+		XVel: -.001,
 		YVel: 0,
 		ZVel: 0,
 		Mass: 10000,
@@ -75,10 +75,11 @@ func main() {
 	for !window.ShouldClose() {
 		fmt.Printf("%+v\n", u)
 		u.Step()
+		farthest := u.FarthestPointFromOrigin()
 		triangle = []float32{
-			float32(u.Bodies[0].XPos) + 0.0, float32(u.Bodies[0].YPos) + 0.1, float32(u.Bodies[0].ZPos) + 0.0, //top
-			float32(u.Bodies[0].XPos) - 0.1, float32(u.Bodies[0].YPos) - 0.1, float32(u.Bodies[0].ZPos) + 0.0, //left
-			float32(u.Bodies[0].XPos) + 0.1, float32(u.Bodies[0].YPos) - 0.1, float32(u.Bodies[0].ZPos) + 0.0, //right
+			float32(u.Bodies[0].XPos/farthest) + 0.0, float32(u.Bodies[0].YPos/farthest) + 0.1, float32(u.Bodies[0].ZPos/farthest) + 0.0, //top
+			float32(u.Bodies[0].XPos/farthest) - 0.1, float32(u.Bodies[0].YPos/farthest) - 0.1, float32(u.Bodies[0].ZPos/farthest) + 0.0, //left
+			float32(u.Bodies[0].XPos/farthest) + 0.1, float32(u.Bodies[0].YPos/farthest) - 0.1, float32(u.Bodies[0].ZPos/farthest) + 0.0, //right
 		}
 		vao := makeVao(triangle)
 		draw(vao, window, program)
