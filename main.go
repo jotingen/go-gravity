@@ -72,15 +72,18 @@ func main() {
 
 	program := initOpenGL()
 
-	vao := makeVao(triangle)
 	for !window.ShouldClose() {
+		fmt.Printf("%+v\n", u)
+		u.Step()
+		triangle = []float32{
+			float32(u.Bodies[0].XPos) + 0.0, float32(u.Bodies[0].YPos) + 0.1, float32(u.Bodies[0].ZPos) + 0.0, //top
+			float32(u.Bodies[0].XPos) - 0.1, float32(u.Bodies[0].YPos) - 0.1, float32(u.Bodies[0].ZPos) + 0.0, //left
+			float32(u.Bodies[0].XPos) + 0.1, float32(u.Bodies[0].YPos) - 0.1, float32(u.Bodies[0].ZPos) + 0.0, //right
+		}
+		vao := makeVao(triangle)
 		draw(vao, window, program)
 	}
 
-	for i := 0; i < 1000; i++ {
-		fmt.Printf("%+v\n", u)
-		u.Step()
-	}
 }
 
 func initGlfw() *glfw.Window {
