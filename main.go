@@ -34,11 +34,63 @@ const (
 
 var (
 	triangle = []float32{
-		0, 0.5, 0, // top
-		-0.5, -0.5, 0, // left
-		0.5, -0.5, 0, // right
+		0, 0.01, 0, // top
+		-0.01, -0.01, 0, // left
+		0.01, -0.01, 0, // right
 	}
 )
+
+type object struct {
+	drawable uint32
+
+	body *gravity.Body
+}
+
+func newObject(b *gravity.Body, farthest float64, massiest float64) *object {
+	points := make([]float32, len(triangle))
+	copy(points, triangle)
+
+	//Adjust size
+	points[0] *= float32(b.Mass/farthest*massiest)
+	points[1] *= float32(b.Mass/farthest*massiest)
+	points[2] *= float32(b.Mass/farthest*massiest)
+
+	points[3] *= float32(b.Mass/farthest*massiest)
+	points[4] *= float32(b.Mass/farthest*massiest)
+	points[5] *= float32(b.Mass/farthest*massiest)
+
+	points[6] *= float32(b.Mass/farthest*massiest)
+	points[7] *= float32(b.Mass/farthest*massiest)
+	points[8] *= float32(b.Mass/farthest*massiest)
+
+			//Adjust position
+			points[0] += float32(b.XPos/farthest*.75)
+			points[1] += float32(b.YPos/farthest*.75)
+			points[2] += float32(b.ZPos/farthest*.75)
+
+			points[3] += float32(b.XPos/farthest*.75)
+			points[4] += float32(b.YPos/farthest*.75)
+			points[5] += float32(b.ZPos/farthest*.75)
+		       
+			points[6] += float32(b.XPos/farthest*.75)
+			points[7] += float32(b.YPos/farthest*.75)
+			points[8] += float32(b.ZPos/farthest*.75)
+
+	return &object{
+		drawable: makeVao(points),
+		body: b,
+	}
+}
+
+func (o *object) draw() {
+	gl.BindVertexArray(o.drawable)
+	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(triangle)/3))
+}
+
+func (o *object) delete() {
+	gl.DeleteVertexArrays(1,&o.drawable)
+	gl.DeleteBuffers(1,&o.drawable)
+}
 
 func main() {
 
@@ -52,13 +104,13 @@ func main() {
 		XVel: -.001,
 		YVel: 0,
 		ZVel: 0,
-		Mass: 10000,
+		Mass: 10,
 	}
 	b2 := gravity.Body{
 		XPos: 0,
-		YPos: 1,
+		YPos: -10,
 		ZPos: 0,
-		XVel: .01,
+		XVel: .1,
 		YVel: 0,
 		ZVel: 0,
 		Mass: 1,
@@ -75,14 +127,13 @@ func main() {
 	for !window.ShouldClose() {
 		fmt.Printf("%+v\n", u)
 		u.Step()
+		var objects []*object
 		farthest := u.FarthestPointFromOrigin()
-		triangle = []float32{
-			float32(u.Bodies[0].XPos/farthest) + 0.0, float32(u.Bodies[0].YPos/farthest) + 0.1, float32(u.Bodies[0].ZPos/farthest) + 0.0, //top
-			float32(u.Bodies[0].XPos/farthest) - 0.1, float32(u.Bodies[0].YPos/farthest) - 0.1, float32(u.Bodies[0].ZPos/farthest) + 0.0, //left
-			float32(u.Bodies[0].XPos/farthest) + 0.1, float32(u.Bodies[0].YPos/farthest) - 0.1, float32(u.Bodies[0].ZPos/farthest) + 0.0, //right
+		massiest := u.LargestMass()
+		for i := range u.Bodies {
+			objects = append(objects, newObject(&u.Bodies[i],farthest,massiest))
 		}
-		vao := makeVao(triangle)
-		draw(vao, window, program)
+		draw(objects, window, program)
 	}
 
 }
@@ -113,6 +164,9 @@ func initOpenGL() uint32 {
 		panic(err)
 	}
 
+	version := gl.GoStr(gl.GetString(gl.VERSION))
+	fmt.Println("OpenGL version", version)
+
 	vertexShader, err := compileShader(vertexShaderSource, gl.VERTEX_SHADER)
 	if err != nil {
 		panic(err)
@@ -130,18 +184,22 @@ func initOpenGL() uint32 {
 	return prog
 }
 
-func draw(vao uint32, window *glfw.Window, program uint32) {
+func draw(objects []*object, window *glfw.Window, program uint32) {
 
 	//gl.ClearColor(0, 0.5, 1.0, 1.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	gl.UseProgram(program)
 
-	gl.BindVertexArray(vao)
-	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(triangle)/3))
+	for _, object := range objects {
+		object.draw()
+	}
 
 	glfw.PollEvents()
 	window.SwapBuffers()
 
+	for _, object := range objects {
+		object.delete()
+	}
 }
 
 // makeVao initializes and returns a vertex array from the points provided.

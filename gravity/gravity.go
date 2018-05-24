@@ -6,7 +6,7 @@ import (
 )
 
 const G = 6.67408e-11
-const Time = 1
+const Time = .001
 
 type Body struct {
 	XPos float64
@@ -99,15 +99,21 @@ func (u *Universe) Step() {
 func (u *Universe) FarthestPointFromOrigin() float64 {
 	var farthest float64
 	for i := range u.Bodies {
-		if u.Bodies[i].XPos > farthest {
-			farthest = u.Bodies[i].XPos
-		}
-		if u.Bodies[i].YPos > farthest {
-			farthest = u.Bodies[i].YPos
-		}
-		if u.Bodies[i].ZPos > farthest {
-			farthest = u.Bodies[i].ZPos
+		r := math.Sqrt(math.Pow(u.Bodies[i].XPos,2)+math.Pow(u.Bodies[i].YPos,2)+math.Pow(u.Bodies[i].ZPos,2))
+		if r > farthest {
+			farthest = r
 		}
 	}
 	return farthest
+}
+
+func (u *Universe) LargestMass() float64 {
+	var mass float64
+	for i := range u.Bodies {
+		m := u.Bodies[i].Mass
+		if m > mass {
+			mass = m
+		}
+	}
+	return mass
 }
