@@ -6,7 +6,7 @@ import (
 )
 
 const G = 6.67408e-11
-const Time = .001
+const Time = 2
 
 type Body struct {
 	XPos float64
@@ -37,27 +37,17 @@ func (u *Universe) Step() {
 				continue
 			}
 			GMass := -G * (u.Bodies[i].Mass * u.Bodies[j].Mass)
-			if u.Bodies[i].XPos-u.Bodies[j].XPos != 0 {
-				if u.Bodies[i].XPos-u.Bodies[j].XPos > 0 {
-					XForce += GMass / math.Pow(u.Bodies[i].XPos-u.Bodies[j].XPos, 2)
-				} else {
-					XForce -= GMass / math.Pow(u.Bodies[i].XPos-u.Bodies[j].XPos, 2)
-				}
-			}
-			if u.Bodies[i].YPos-u.Bodies[j].YPos != 0 {
-				if u.Bodies[i].YPos-u.Bodies[j].YPos > 0 {
-					YForce += GMass / math.Pow(u.Bodies[i].YPos-u.Bodies[j].YPos, 2)
-				} else {
-					YForce -= GMass / math.Pow(u.Bodies[i].YPos-u.Bodies[j].YPos, 2)
-				}
-			}
-			if u.Bodies[i].ZPos-u.Bodies[j].ZPos != 0 {
-				if u.Bodies[i].ZPos-u.Bodies[j].ZPos > 0 {
-					ZForce += GMass / math.Pow(u.Bodies[i].ZPos-u.Bodies[j].ZPos, 2)
-				} else {
-					ZForce -= GMass / math.Pow(u.Bodies[i].ZPos-u.Bodies[j].ZPos, 2)
-				}
-			}
+
+			RMag := math.Sqrt(math.Pow(u.Bodies[i].XPos-u.Bodies[j].XPos, 2) +
+				math.Pow(u.Bodies[i].YPos-u.Bodies[j].YPos, 2) +
+				math.Pow(u.Bodies[i].ZPos-u.Bodies[j].ZPos, 2))
+
+			F := GMass / math.Pow(RMag, 3)
+
+			XForce = F * (u.Bodies[i].XPos - u.Bodies[j].XPos) / RMag
+			YForce = F * (u.Bodies[i].YPos - u.Bodies[j].YPos) / RMag
+			ZForce = F * (u.Bodies[i].ZPos - u.Bodies[j].ZPos) / RMag
+
 			//fmt.Printf("GMass  %d %d : %e\n", i, j, GMass)
 			//fmt.Printf("XPos   %d %d : %e %e\n", i, j, u.Bodies[i].XPos, u.Bodies[j].XPos)
 			//fmt.Printf("r      %d %d : %e\n", i, j, u.Bodies[i].XPos-u.Bodies[j].XPos)
@@ -99,7 +89,7 @@ func (u *Universe) Step() {
 func (u *Universe) FarthestPointFromOrigin() float64 {
 	var farthest float64
 	for i := range u.Bodies {
-		r := math.Sqrt(math.Pow(u.Bodies[i].XPos,2)+math.Pow(u.Bodies[i].YPos,2)+math.Pow(u.Bodies[i].ZPos,2))
+		r := math.Sqrt(math.Pow(u.Bodies[i].XPos, 2) + math.Pow(u.Bodies[i].YPos, 2) + math.Pow(u.Bodies[i].ZPos, 2))
 		if r > farthest {
 			farthest = r
 		}
