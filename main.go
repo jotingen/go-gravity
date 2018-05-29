@@ -2,13 +2,17 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
+	"time"
 )
 
 import (
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/imdraw"
 	"github.com/faiface/pixel/pixelgl"
+	"github.com/faiface/pixel/text"
 	"golang.org/x/image/colornames"
+	"golang.org/x/image/font/basicfont"
 )
 
 import (
@@ -27,77 +31,27 @@ var (
 func main() {
 
 	fmt.Println("go-gravity")
-	b1 := gravity.Body{
+	u = gravity.Universe{}
+	u.Bodies = append(u.Bodies, gravity.Body{
 		XPos: 0,
 		YPos: 0,
 		ZPos: 0,
-		XVel: -.001,
+		XVel: 0,
 		YVel: 0,
 		ZVel: 0,
-		Mass: 50,
+		Mass: 20,
+	})
+	for i := 0; i < 5; i++ {
+		u.Bodies = append(u.Bodies, gravity.Body{
+			XPos: (rand.Float64()*2 - 1) * 10,
+			YPos: (rand.Float64()*2 - 1) * 10,
+			ZPos: 0,
+			XVel: (rand.Float64()*2 - 1) / 1000,
+			YVel: (rand.Float64()*2 - 1) / 1000,
+			ZVel: 0,
+			Mass: rand.Float64(),
+		})
 	}
-	b2 := gravity.Body{
-		XPos: 0,
-		YPos: -10,
-		ZPos: 0,
-		XVel: .01,
-		YVel: 0,
-		ZVel: 0,
-		Mass: 1,
-	}
-	b3 := gravity.Body{
-		XPos: 0,
-		YPos: 10,
-		ZPos: 0,
-		XVel: -.001,
-		YVel: 0,
-		ZVel: 0,
-		Mass: 10,
-	}
-	b4 := gravity.Body{
-		XPos: 0,
-		YPos: -1,
-		ZPos: 0,
-		XVel: .01,
-		YVel: 0,
-		ZVel: 0,
-		Mass: 1,
-	}
-	b5 := gravity.Body{
-		XPos: 0,
-		YPos: -5,
-		ZPos: 0,
-		XVel: .01,
-		YVel: -.01,
-		ZVel: 0,
-		Mass: 1,
-	}
-	b6 := gravity.Body{
-		XPos: 1,
-		YPos: -7,
-		ZPos: 0,
-		XVel: .01,
-		YVel: 0,
-		ZVel: 0,
-		Mass: 1,
-	}
-	b7 := gravity.Body{
-		XPos: 4,
-		YPos: -4,
-		ZPos: 0,
-		XVel: .01,
-		YVel: .01,
-		ZVel: 0,
-		Mass: 1,
-	}
-	u = gravity.Universe{}
-	u.Bodies = append(u.Bodies, b1)
-	u.Bodies = append(u.Bodies, b2)
-	u.Bodies = append(u.Bodies, b3)
-	u.Bodies = append(u.Bodies, b4)
-	u.Bodies = append(u.Bodies, b5)
-	u.Bodies = append(u.Bodies, b6)
-	u.Bodies = append(u.Bodies, b7)
 
 	pixelgl.Run(run)
 
@@ -113,6 +67,10 @@ func run() {
 	if err != nil {
 		panic(err)
 	}
+
+	basicAtlas := text.NewAtlas(basicfont.Face7x13, text.ASCII)
+
+	timestamp := time.Now().UTC()
 
 	for !win.Closed() {
 		u.Step()
@@ -138,6 +96,13 @@ func run() {
 			circle.Draw(win)
 		}
 		//fmt.Println()
+
+		basicTxt := text.New(pixel.V(100, 500), basicAtlas)
+		basicTxt.Color = colornames.Red
+		fmt.Fprintf(basicTxt, "%4.1f", 1.0/time.Since(timestamp).Seconds())
+		timestamp = time.Now().UTC()
+		basicTxt.Draw(win, pixel.IM.Scaled(basicTxt.Orig, 3))
+
 		win.Update()
 	}
 }
