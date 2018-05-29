@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 	"time"
 )
@@ -32,22 +33,62 @@ func main() {
 
 	fmt.Println("go-gravity")
 	u = gravity.Universe{}
-	u.Bodies = append(u.Bodies, gravity.Body{
-		XPos: 0,
-		YPos: 0,
-		ZPos: 0,
-		XVel: 0,
-		YVel: 0,
-		ZVel: 0,
-		Mass: 20,
-	})
-	for i := 0; i < 5; i++ {
+	//for i := -10; i <= 10; i++ {
+	//	for j := -10; j <= 10; j++ {
+	//		u.Bodies = append(u.Bodies, gravity.Body{
+	//			XPos: float64(i),
+	//			YPos: float64(j),
+	//			ZPos: 0,
+	//			XVel: 0,
+	//			YVel: 0,
+	//			ZVel: 0,
+	//			Mass: 1,
+	//		})
+	//	}
+	//}
+
+	//u.Bodies = append(u.Bodies, gravity.Body{
+	//	XPos: 2,
+	//	YPos: 0,
+	//	ZPos: 0,
+	//	XVel: 0,
+	//	YVel: .001,
+	//	ZVel: 0,
+	//	Mass: 10,
+	//})
+	//u.Bodies = append(u.Bodies, gravity.Body{
+	//	XPos: -2,
+	//	YPos: 0,
+	//	ZPos: 0,
+	//	XVel: 0,
+	//	YVel: -.001,
+	//	ZVel: 0,
+	//	Mass: 10,
+	//})
+	//u.Bodies = append(u.Bodies, gravity.Body{
+	//	XPos: 0,
+	//	YPos: 10,
+	//	ZPos: 0,
+	//	XVel: .001,
+	//	YVel: 0,
+	//	ZVel: 0,
+	//	Mass: 20,
+	//})
+
+	for i := 0; i < 1000; i++ {
+		a := rand.Float64()
+		b := rand.Float64()
+		if b < a {
+			c := a
+			a = b
+			b = c
+		}
 		u.Bodies = append(u.Bodies, gravity.Body{
-			XPos: (rand.Float64()*2 - 1) * 10,
-			YPos: (rand.Float64()*2 - 1) * 10,
+			XPos: b * 100 * math.Cos(2*math.Pi*a/b),
+			YPos: b * 100 * math.Sin(2*math.Pi*a/b),
 			ZPos: 0,
-			XVel: (rand.Float64()*2 - 1) / 1000,
-			YVel: (rand.Float64()*2 - 1) / 1000,
+			XVel: (rand.Float64()*2 - 1) / 10000,
+			YVel: (rand.Float64()*2 - 1) / 10000,
 			ZVel: 0,
 			Mass: rand.Float64(),
 		})
@@ -72,19 +113,39 @@ func run() {
 
 	timestamp := time.Now().UTC()
 
+	zoom := 0.0
+
 	for !win.Closed() {
 		u.Step()
 		//fmt.Printf("%+v\n", u)
 
-		farthest := u.FarthestPointFromOrigin()
-		massiest := u.LargestMass()
+		windowSmallest := float64(windowWidth)
+		if windowHeight < windowSmallest {
+			windowSmallest = float64(windowHeight)
+		}
+
+		//farthest := u.FarthestPointFromOrigin()
+		farthestX := u.FarthestXPointFromOrigin()
+		farthestY := u.FarthestYPointFromOrigin()
+		zoomX := (float64(windowWidth) / 2) / farthestX
+		zoomY := (float64(windowHeight) / 2) / farthestY
+		//fmt.Printf("%5f  ", zoomX)
+		//fmt.Printf("%5f  ", zoomY)
+		if zoomX < zoom || zoom == 0.0 {
+			zoom = zoomX
+		}
+		if zoomY < zoom {
+			zoom = zoomY
+		}
+		//fmt.Printf("%5f\n", zoom)
+		//massiest := u.LargestMass()
 
 		win.Clear(colornames.Black)
 
 		for _, b := range u.Bodies {
-			x := b.XPos/farthest*.75*windowWidth/2 + windowWidth/2
-			y := b.YPos/farthest*.75*windowHeight/2 + windowHeight/2
-			r := b.Mass / farthest * massiest
+			x := b.XPos*zoom*.95 + windowWidth/2
+			y := b.YPos*zoom*.95 + windowHeight/2
+			r := b.Mass * zoom * .01
 			if r < 1 {
 				r = 1
 			}

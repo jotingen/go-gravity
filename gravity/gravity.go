@@ -33,7 +33,7 @@ func (u *Universe) Step() {
 
 	wg.Add(len(u.Bodies))
 	for i := range u.Bodies {
-		go func() {
+		go func(i int) {
 			defer wg.Done()
 			var XForce float64
 			var YForce float64
@@ -54,61 +54,93 @@ func (u *Universe) Step() {
 				YForce += F * (u.Bodies[i].YPos - u.Bodies[j].YPos) / RMag
 				ZForce += F * (u.Bodies[i].ZPos - u.Bodies[j].ZPos) / RMag
 
+				//fmt.Printf("%d %d\n", i, j)
 				//fmt.Printf("GMass  %d %d : %e\n", i, j, GMass)
-				//fmt.Printf("XPos   %d %d : %e %e\n", i, j, u.Bodies[i].XPos, u.Bodies[j].XPos)
-				//fmt.Printf("r      %d %d : %e\n", i, j, u.Bodies[i].XPos-u.Bodies[j].XPos)
+				//fmt.Printf("RMag   %d %d : %e\n", i, j, RMag)
+				//fmt.Printf("F      %d %d : %e\n", i, j, F)
 				//fmt.Printf("XForce %d %d : %e\n", i, j, XForce)
+				//fmt.Printf("YForce %d %d : %e\n", i, j, YForce)
 			}
 			u.Bodies[i].xForce = XForce
 			u.Bodies[i].yForce = YForce
 			u.Bodies[i].zForce = ZForce
-		}()
+		}(i)
 	}
 	wg.Wait()
+	//for i := range u.Bodies {
+	//	fmt.Printf("%d %10e %10e  ", i, u.Bodies[i].xForce, u.Bodies[i].yForce)
+	//}
+	//fmt.Println()
 	//fmt.Println("Force")
 	//fmt.Println(XForces)
 	//fmt.Println(YForces)
 	//fmt.Println(ZForces)
 
-	//wg.Add(len(u.Bodies))
+	wg.Add(len(u.Bodies))
 	for i := range u.Bodies {
-		//	go func() {
-		//		defer wg.Done()
-		if u.Bodies[i].xForce > 0 {
-			u.Bodies[i].XVel += math.Sqrt(2 * math.Abs(u.Bodies[i].xForce) / u.Bodies[i].Mass)
-		} else {
-			u.Bodies[i].XVel -= math.Sqrt(2 * math.Abs(u.Bodies[i].xForce) / u.Bodies[i].Mass)
-		}
-		if u.Bodies[i].yForce > 0 {
-			u.Bodies[i].YVel += math.Sqrt(2 * math.Abs(u.Bodies[i].yForce) / u.Bodies[i].Mass)
-		} else {
-			u.Bodies[i].YVel -= math.Sqrt(2 * math.Abs(u.Bodies[i].yForce) / u.Bodies[i].Mass)
-		}
-		if u.Bodies[i].zForce > 0 {
-			u.Bodies[i].ZVel += math.Sqrt(2 * math.Abs(u.Bodies[i].zForce) / u.Bodies[i].Mass)
-		} else {
-			u.Bodies[i].ZVel -= math.Sqrt(2 * math.Abs(u.Bodies[i].zForce) / u.Bodies[i].Mass)
-		}
-		//	}()
-	}
-	//wg.Wait()
+		go func(i int) {
+			defer wg.Done()
+			if u.Bodies[i].xForce > 0 {
+				u.Bodies[i].XVel += math.Sqrt(2 * math.Abs(u.Bodies[i].xForce) / u.Bodies[i].Mass)
+			} else {
+				u.Bodies[i].XVel -= math.Sqrt(2 * math.Abs(u.Bodies[i].xForce) / u.Bodies[i].Mass)
+			}
+			if u.Bodies[i].yForce > 0 {
+				u.Bodies[i].YVel += math.Sqrt(2 * math.Abs(u.Bodies[i].yForce) / u.Bodies[i].Mass)
+			} else {
+				u.Bodies[i].YVel -= math.Sqrt(2 * math.Abs(u.Bodies[i].yForce) / u.Bodies[i].Mass)
+			}
+			if u.Bodies[i].zForce > 0 {
+				u.Bodies[i].ZVel += math.Sqrt(2 * math.Abs(u.Bodies[i].zForce) / u.Bodies[i].Mass)
+			} else {
+				u.Bodies[i].ZVel -= math.Sqrt(2 * math.Abs(u.Bodies[i].zForce) / u.Bodies[i].Mass)
+			}
 
-	//wg.Add(len(u.Bodies))
-	for i := range u.Bodies {
-		//	go func() {
-		//		defer wg.Done()
-		u.Bodies[i].XPos += u.Bodies[i].XVel * Time
-		u.Bodies[i].YPos += u.Bodies[i].YVel * Time
-		u.Bodies[i].ZPos += u.Bodies[i].ZVel * Time
-		//	}()
+			u.Bodies[i].XPos += u.Bodies[i].XVel * Time
+			u.Bodies[i].YPos += u.Bodies[i].YVel * Time
+			u.Bodies[i].ZPos += u.Bodies[i].ZVel * Time
+		}(i)
 	}
-	//wg.Wait()
+	wg.Wait()
 }
 
 func (u *Universe) FarthestPointFromOrigin() float64 {
 	var farthest float64
 	for i := range u.Bodies {
 		r := math.Sqrt(math.Pow(u.Bodies[i].XPos, 2) + math.Pow(u.Bodies[i].YPos, 2) + math.Pow(u.Bodies[i].ZPos, 2))
+		if r > farthest {
+			farthest = r
+		}
+	}
+	return farthest
+}
+
+func (u *Universe) FarthestXPointFromOrigin() float64 {
+	var farthest float64
+	for i := range u.Bodies {
+		r := u.Bodies[i].XPos
+		if r > farthest {
+			farthest = r
+		}
+	}
+	return farthest
+}
+
+func (u *Universe) FarthestYPointFromOrigin() float64 {
+	var farthest float64
+	for i := range u.Bodies {
+		r := u.Bodies[i].YPos
+		if r > farthest {
+			farthest = r
+		}
+	}
+	return farthest
+}
+
+func (u *Universe) FarthestZPointFromOrigin() float64 {
+	var farthest float64
+	for i := range u.Bodies {
+		r := u.Bodies[i].ZPos
 		if r > farthest {
 			farthest = r
 		}
