@@ -10,13 +10,14 @@ const G = 6.67408e-11
 const Time = 2
 
 type Body struct {
-	XPos float64
-	YPos float64
-	ZPos float64
-	XVel float64
-	YVel float64
-	ZVel float64
-	Mass float64
+	XPos   float64
+	YPos   float64
+	ZPos   float64
+	XVel   float64
+	YVel   float64
+	ZVel   float64
+	Radius float64
+	Mass   float64
 
 	xForce float64
 	yForce float64
@@ -102,6 +103,30 @@ func (u *Universe) Step() {
 		}(i)
 	}
 	wg.Wait()
+
+	//Check for collisions
+	for i := 0; i < len(u.Bodies); i++ {
+		for j := i + 1; j < len(u.Bodies); j++ {
+			distance := math.Sqrt(math.Pow(u.Bodies[i].XPos-u.Bodies[j].XPos, 2) +
+				math.Pow(u.Bodies[i].YPos-u.Bodies[j].YPos, 2) +
+				math.Pow(u.Bodies[i].ZPos-u.Bodies[j].ZPos, 2))
+			if distance <= u.Bodies[i].Radius+u.Bodies[j].Radius {
+				u.Bodies[i] = Body{
+					XPos:   ((u.Bodies[i].Mass * u.Bodies[i].XPos) + (u.Bodies[j].Mass * u.Bodies[j].XPos)) / (u.Bodies[i].Mass + u.Bodies[j].Mass),
+					YPos:   ((u.Bodies[i].Mass * u.Bodies[i].YPos) + (u.Bodies[j].Mass * u.Bodies[j].YPos)) / (u.Bodies[i].Mass + u.Bodies[j].Mass),
+					ZPos:   ((u.Bodies[i].Mass * u.Bodies[i].ZPos) + (u.Bodies[j].Mass * u.Bodies[j].ZPos)) / (u.Bodies[i].Mass + u.Bodies[j].Mass),
+					XVel:   ((u.Bodies[i].Mass * u.Bodies[i].XVel) + (u.Bodies[j].Mass * u.Bodies[j].XVel)) / (u.Bodies[i].Mass + u.Bodies[j].Mass),
+					YVel:   ((u.Bodies[i].Mass * u.Bodies[i].YVel) + (u.Bodies[j].Mass * u.Bodies[j].YVel)) / (u.Bodies[i].Mass + u.Bodies[j].Mass),
+					ZVel:   ((u.Bodies[i].Mass * u.Bodies[i].ZVel) + (u.Bodies[j].Mass * u.Bodies[j].ZVel)) / (u.Bodies[i].Mass + u.Bodies[j].Mass),
+					Radius: math.Sqrt(math.Pow(u.Bodies[i].Radius, 2) + math.Pow(u.Bodies[j].Radius, 2)),
+					Mass:   (u.Bodies[i].Mass + u.Bodies[j].Mass),
+				}
+				u.Bodies = append(u.Bodies[:j], u.Bodies[j+1:]...)
+				j--
+			}
+		}
+	}
+
 }
 
 func (u *Universe) FarthestPointFromOrigin() float64 {

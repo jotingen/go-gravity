@@ -33,6 +33,8 @@ func main() {
 
 	fmt.Println("go-gravity")
 	u = gravity.Universe{}
+
+	//Grid
 	//for i := -10; i <= 10; i++ {
 	//	for j := -10; j <= 10; j++ {
 	//		u.Bodies = append(u.Bodies, gravity.Body{
@@ -47,6 +49,7 @@ func main() {
 	//	}
 	//}
 
+	//3 Body
 	//u.Bodies = append(u.Bodies, gravity.Body{
 	//	XPos: 2,
 	//	YPos: 0,
@@ -75,6 +78,7 @@ func main() {
 	//	Mass: 20,
 	//})
 
+	//Circle
 	for i := 0; i < 1000; i++ {
 		a := rand.Float64()
 		b := rand.Float64()
@@ -84,15 +88,38 @@ func main() {
 			b = c
 		}
 		u.Bodies = append(u.Bodies, gravity.Body{
-			XPos: b * 100 * math.Cos(2*math.Pi*a/b),
-			YPos: b * 100 * math.Sin(2*math.Pi*a/b),
-			ZPos: 0,
-			XVel: (rand.Float64()*2 - 1) / 10000,
-			YVel: (rand.Float64()*2 - 1) / 10000,
-			ZVel: 0,
-			Mass: rand.Float64(),
+			XPos:   b * 100 * math.Cos(2*math.Pi*a/b),
+			YPos:   b * 100 * math.Sin(2*math.Pi*a/b),
+			ZPos:   0,
+			XVel:   (rand.Float64()*2 - 1) / 10000,
+			YVel:   (rand.Float64()*2 - 1) / 10000,
+			ZVel:   0,
+			Radius: rand.Float64() / 10,
+			Mass:   rand.Float64(),
 		})
 	}
+
+	//Collision
+	//u.Bodies = append(u.Bodies, gravity.Body{
+	//	XPos:   10,
+	//	YPos:   -10,
+	//	ZPos:   0,
+	//	XVel:   -.01,
+	//	YVel:   .01,
+	//	ZVel:   0,
+	//	Radius: 1,
+	//	Mass:   10,
+	//})
+	//u.Bodies = append(u.Bodies, gravity.Body{
+	//	XPos:   -10,
+	//	YPos:   -10,
+	//	ZPos:   0,
+	//	XVel:   .01,
+	//	YVel:   .01,
+	//	ZVel:   0,
+	//	Radius: 1,
+	//	Mass:   10,
+	//})
 
 	pixelgl.Run(run)
 
@@ -145,7 +172,7 @@ func run() {
 		for _, b := range u.Bodies {
 			x := b.XPos*zoom*.95 + windowWidth/2
 			y := b.YPos*zoom*.95 + windowHeight/2
-			r := b.Mass * zoom * .01
+			r := b.Radius * zoom
 			if r < 1 {
 				r = 1
 			}
