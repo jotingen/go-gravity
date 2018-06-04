@@ -6,6 +6,10 @@ import (
 	"sync"
 )
 
+//import (
+//	"github.com/jinzhu/copier"
+//)
+
 const G = 6.67408e-11
 const Time = 2
 
@@ -28,6 +32,11 @@ type Universe struct {
 	Bodies []Body
 }
 
+//func (u *Universe) Copy() (copy Universe) {
+//	copier.Copy(&copy, u)
+//	return
+//}
+
 func (u *Universe) Step() {
 	//fmt.Println("Step")
 	var wg sync.WaitGroup
@@ -49,7 +58,7 @@ func (u *Universe) Step() {
 					math.Pow(u.Bodies[i].YPos-u.Bodies[j].YPos, 2) +
 					math.Pow(u.Bodies[i].ZPos-u.Bodies[j].ZPos, 2))
 
-				F := GMass / math.Pow(RMag, 3)
+				F := GMass / math.Pow(RMag, 2)
 
 				XForce += F * (u.Bodies[i].XPos - u.Bodies[j].XPos) / RMag
 				YForce += F * (u.Bodies[i].YPos - u.Bodies[j].YPos) / RMag
@@ -81,21 +90,9 @@ func (u *Universe) Step() {
 	for i := range u.Bodies {
 		go func(i int) {
 			defer wg.Done()
-			if u.Bodies[i].xForce > 0 {
-				u.Bodies[i].XVel += math.Sqrt(2 * math.Abs(u.Bodies[i].xForce) / u.Bodies[i].Mass)
-			} else {
-				u.Bodies[i].XVel -= math.Sqrt(2 * math.Abs(u.Bodies[i].xForce) / u.Bodies[i].Mass)
-			}
-			if u.Bodies[i].yForce > 0 {
-				u.Bodies[i].YVel += math.Sqrt(2 * math.Abs(u.Bodies[i].yForce) / u.Bodies[i].Mass)
-			} else {
-				u.Bodies[i].YVel -= math.Sqrt(2 * math.Abs(u.Bodies[i].yForce) / u.Bodies[i].Mass)
-			}
-			if u.Bodies[i].zForce > 0 {
-				u.Bodies[i].ZVel += math.Sqrt(2 * math.Abs(u.Bodies[i].zForce) / u.Bodies[i].Mass)
-			} else {
-				u.Bodies[i].ZVel -= math.Sqrt(2 * math.Abs(u.Bodies[i].zForce) / u.Bodies[i].Mass)
-			}
+			u.Bodies[i].XVel += u.Bodies[i].xForce / u.Bodies[i].Mass * Time
+			u.Bodies[i].YVel += u.Bodies[i].yForce / u.Bodies[i].Mass * Time
+			u.Bodies[i].ZVel += u.Bodies[i].zForce / u.Bodies[i].Mass * Time
 
 			u.Bodies[i].XPos += u.Bodies[i].XVel * Time
 			u.Bodies[i].YPos += u.Bodies[i].YVel * Time
@@ -133,7 +130,7 @@ func (u *Universe) FarthestPointFromOrigin() float64 {
 	var farthest float64
 	for i := range u.Bodies {
 		r := math.Sqrt(math.Pow(u.Bodies[i].XPos, 2) + math.Pow(u.Bodies[i].YPos, 2) + math.Pow(u.Bodies[i].ZPos, 2))
-		if r > farthest {
+		if math.Abs(r) > math.Abs(farthest) {
 			farthest = r
 		}
 	}
@@ -144,7 +141,7 @@ func (u *Universe) FarthestXPointFromOrigin() float64 {
 	var farthest float64
 	for i := range u.Bodies {
 		r := u.Bodies[i].XPos
-		if r > farthest {
+		if math.Abs(r) > math.Abs(farthest) {
 			farthest = r
 		}
 	}
@@ -155,7 +152,7 @@ func (u *Universe) FarthestYPointFromOrigin() float64 {
 	var farthest float64
 	for i := range u.Bodies {
 		r := u.Bodies[i].YPos
-		if r > farthest {
+		if math.Abs(r) > math.Abs(farthest) {
 			farthest = r
 		}
 	}
@@ -166,7 +163,7 @@ func (u *Universe) FarthestZPointFromOrigin() float64 {
 	var farthest float64
 	for i := range u.Bodies {
 		r := u.Bodies[i].ZPos
-		if r > farthest {
+		if math.Abs(r) > math.Abs(farthest) {
 			farthest = r
 		}
 	}
@@ -182,4 +179,36 @@ func (u *Universe) LargestMass() float64 {
 		}
 	}
 	return mass
+}
+
+func (u *Universe) TotalMass() float64 {
+	var mass float64
+	for i := range u.Bodies {
+		mass += u.Bodies[i].Mass
+	}
+	return mass
+}
+
+func (u *Universe) XCenterOfMass() float64 {
+	var moments float64
+	for i := range u.Bodies {
+		moments += u.Bodies[i].XPos * u.Bodies[i].Mass
+	}
+	return moments / u.TotalMass()
+}
+
+func (u *Universe) YCenterOfMass() float64 {
+	var moments float64
+	for i := range u.Bodies {
+		moments += u.Bodies[i].YPos * u.Bodies[i].Mass
+	}
+	return moments / u.TotalMass()
+}
+
+func (u *Universe) ZCenterOfMass() float64 {
+	var moments float64
+	for i := range u.Bodies {
+		moments += u.Bodies[i].ZPos * u.Bodies[i].Mass
+	}
+	return moments / u.TotalMass()
 }
